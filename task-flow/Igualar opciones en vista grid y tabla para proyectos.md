@@ -51,7 +51,7 @@ Explícame:
 1. Cómo se cargan las propiedades al entrar en la página.
 2. De dónde vienen los datos.
 3. Qué componente renderiza el listado principal.
-4. Qué archivo debo modificar si quiero cambiar [EXPLICAR_LO_QUE_SE_NECESITA].
-
-Máximo 10 puntos.
+4. Qué archivo debo modificar si quiero cambiar [el cambio es que se necesita igualar las opciones, porque salen diferentes en la tabla y el grid: Tabla: Modelos, Propiedades, Conocimiento, Plano, Amenidades, HITL, Hitos, Fotos Cotización, Videos, Master plan mkt, Webhook API Key
+Grid: Modelos, Propiedades, Conocimiento, Plano, Amenidades, HITL, Hitos, Fotos Cotización, Videos, Brochure, Landing Page, El set final es que necesito todas las opciones, en las 2, tabla y grid:
+Opciones: Modelos, Propiedades, Conocimiento, Plano, Amenidades, HITL, Hitos, Fotos Cotización, Videos, Brochure, Landing Page, Master plan mkt, Webhook API Key].
 

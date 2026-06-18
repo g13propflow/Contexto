@@ -70,3 +70,4 @@ Explícame:
 1. Qué archivo debo modificar si [En el boton de Mas filtros, se necesita agregar un boton hasta abajo de ese dropdown, que dispare la busqueda al ser presionado, porque actualmente esta que cualquier filtro dispara la busqueda, este boton servira para que el usuario pueda el detonar la busqueda y no automaticamente como esta].
 
 
+
