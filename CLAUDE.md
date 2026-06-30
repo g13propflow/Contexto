@@ -478,6 +478,74 @@ http://localhost:8000/redoc
 
 ---
 
+## Entorno local del desarrollador
+
+### Sistema operativo y herramientas
+- **Windows** con **OneDrive** sincronizando la carpeta `Projects/` (los repos viven en `C:\Users\Johanna Gamboa\OneDrive - PropFlow\Documentos\Projects\`)
+- **Docker Desktop** instalado (usado para `app-saas-service` y Redis)
+- **Node.js** instalado globalmente (para los tres microservicios y el frontend)
+- **uv** disponible como alternativa a Docker para `app-saas-service`
+- **Auth0** ya configurado; los tokens y variables de entorno están en los `.env` de cada servicio
+
+### Infraestructura externa (no corre en local)
+- **SQL Server**: Azure (todos los servicios se conectan al mismo servidor remoto)
+- **Azure Blob Storage**: remoto
+- **Auth0**: remoto
+- **Pinecone**, **SendGrid**, **Temporal Cloud**: remotos
+
+### Infraestructura que sí corre en local
+- **Redis**: Docker → `docker run -d -p 6379:6379 redis:alpine`
+- **PostgreSQL** (checkpointer LangGraph de `app-saas-service`): incluido en el `docker-compose.yml` del servicio
+
+### Cómo levantar el entorno local
+
+**Orden recomendado:**
+
+1. **Redis** (si no está corriendo)
+   ```bash
+   docker run -d -p 6379:6379 redis:alpine
+   ```
+
+2. **app-saas-service** — preferir Docker
+   ```bash
+   cd app-saas-service
+   docker-compose up -d --build
+   # Aplicar migraciones pendientes:
+   docker-compose exec api alembic upgrade head
+   ```
+   Alternativa sin Docker:
+   ```bash
+   uv sync && alembic upgrade head
+   uv run uvicorn app.main:app --reload --port 8000
+   ```
+
+3. **Microservicios** (terminales separadas, cualquier orden)
+   ```bash
+   cd calendar-service   && npm install && npm run dev   # :3002
+   cd quotation-service  && npm install && npm run dev   # :3007
+   cd collection-service && npm install && npm run dev   # :3010
+   ```
+
+4. **Frontend**
+   ```bash
+   cd app-saas-frontend && npm install && npm run dev
+   ```
+
+### Variables de entorno del frontend (`.env` o `vite.config`)
+```
+VITE_API_BASE_URL=http://localhost:8000
+VITE_CALENDAR_API_BASE_URL=http://localhost:3002
+VITE_QUOTATION_API_BASE_URL=http://localhost:3008
+VITE_COLLECTION_API_BASE_URL=http://localhost:3010
+```
+
+### Notas importantes
+- Cada vez que se agrega una migración de Alembic hay que correr `alembic upgrade head` antes de probar el endpoint correspondiente.
+- El sandbox de bash de Cowork ve los archivos vía mount de OneDrive; a veces el mount tiene una versión cacheada/truncada si OneDrive no ha sincronizado. Si un archivo se ve incompleto en bash, la versión en OneDrive (leída con la herramienta Read) es la correcta.
+- `app-saas-service` es el único que usa Celery workers y Temporal; en local se puede omitir Temporal si no se están probando workflows durables.
+
+---
+
 ## Dominios de producción (Traefik)
 
 | Servicio | Dominio |
