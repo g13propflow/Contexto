@@ -35,11 +35,12 @@ que el sistema evalúa sola". Cada lista ahora tiene `list_type` (`static`/`dyna
 para las dinámicas, un `criteria` (árbol de filtros AND/OR con grupos, en JSON).
 
 Mecanismo central — la misma regla se resuelve de dos formas según quién la use:
-- **Broadcast (campañas):** un workflow de Temporal (`DynamicListRecalcWorkflow`) corre
-  1×/día (09:00 UTC ≈ 03:00 GT) y **materializa** la membresía en
-  `distribution_list_leads` (la "foto"). Sella `last_recalculated_at`, `member_count`,
-  `last_recalc_status`. El send path de broadcast lee esa foto tal cual (SQL crudo con
-  JOIN a `distribution_list_leads`), sin cambios.
+- **Broadcast (campañas):** al arrancar el envío se **materializa** la membresía en
+  `distribution_list_leads` (la "foto") justo antes de leerla. Sella
+  `last_recalculated_at`, `member_count`, `last_recalc_status`. El send path de broadcast
+  lee esa foto tal cual (SQL crudo con JOIN a `distribution_list_leads`), sin cambios.
+  El recálculo se hace **on-demand al enviar**, no en lote a diario (ver Actualización
+  2026-07-02).
 - **Workflow transaccional:** `_send_email` en modo `distribution_list` llama
   `get_email_recipients(list_id, live=True)`, que para listas dinámicas ignora la foto y
   **resuelve el criterio en vivo** al trigger vía `LeadSegmentResolver`.
@@ -98,3 +99,52 @@ Encontrados durante el análisis (documentados, no todos resueltos aquí):
 - Extensión posterior en `feature/SCRUM-1262` (2026-07-01): filtros por proyecto, motivo
   de descarte y palabras clave.
 - Referencia: `plan-listas-distribucion-dinamicas.md` en la raíz del workspace.
+
+---
+
+## Actualización 2026-07-02 — recálculo on-demand (no más batch diario)
+
+### Qué pidieron
+El recálculo de los leads de una lista dinámica ya **no** debe correr 1×/día; debe
+hacerse **cada vez que se va a enviar la lista, bajo demanda**, para no saturar el
+sistema (el batch diario recalculaba todas las listas de todos los tenants aunque no se
+fueran a enviar).
+
+### Qué se hizo
+El recálculo pasó de batch programado a on-demand, disparado al arrancar cada campaña,
+justo antes de leer la foto. Aplica a **ambos canales** (email y WhatsApp), que leen
+`distribution_list_leads`.
+
+- `app/services/dynamic_list_recalc_service.py` — nueva `materialize_dynamic_list_for_send(tenant_id, list_id)`:
+  recalcula **una** lista. Estática → no-op; criterio inválido → sella
+  `last_recalc_status='error'` y propaga (mejor fallar que enviar foto vieja).
+- `app/temporal/activities_dynamic_list_recalc.py` — nueva activity
+  `materialize_dynamic_list_on_demand`.
+- `app/temporal/workflows_email_campaign.py` y `app/temporal/workflows_campaign.py` —
+  se llama esa activity **antes** de `fetch_email_leads` / `fetch_campaign_leads`. En ese
+  punto el `status` ya es `sending`, por eso NO se aplica el guard `has_sending_campaign`
+  (esta campaña es la que envía).
+- `app/temporal/worker.py` — se reemplazó `ensure_dynamic_list_recalc_schedule` por
+  `remove_dynamic_list_recalc_schedule`, que **borra** el schedule diario en cualquier
+  entorno que lo tuviera; se registró la nueva activity.
+
+### Qué se conservó
+El `DynamicListRecalcWorkflow` + sus activities de batch quedan registrados como
+**refresco masivo disparable a mano** desde Temporal (ya no corre por schedule). El path
+transaccional (`live=True`) no cambia: ya resolvía on-demand. En el detalle de la lista
+se mantiene el botón manual **Recalcular**.
+
+### Frontend (`app-saas-frontend`)
+Se corrigió el texto que decía que la lista dinámica se "recalcula a diario", que ya no
+es cierto:
+- `src/views/distribution-lists/components/ListTypeBadge.vue` — tooltip → "Membresía
+  definida por criterios; se recalcula al enviar".
+- `src/views/distribution-lists/components/CreateListModal.vue` — opción Dinámica → "Definida
+  por criterios, se recalcula al enviar".
+
+### Ramas / commits
+- `app-saas-service` → rama `feature/SCRUM-1293`, commit `f8ac348d` (6 archivos backend).
+- `app-saas-frontend` → rama `feature/SCRUM-1293`, commit `6da214ff` (2 archivos de texto).
+
+### Verificación
+`pytest tests/unit/listas_dinamicas/` → **40 passed** (en Docker, contenedor `api`).

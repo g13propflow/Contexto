@@ -11,7 +11,9 @@ citas/eventos de la semana (mostrando de inmediato los del día si existen).
 Reutilizando la lógica existente, sin duplicar y preservando filtros/estado.
 
 ## Rama
-`feature/SCRUM-1290` (commit `5cc12bb`)
+`feature/SCRUM-1290`
+- commit `5cc12bb` — clic en día de la vista Mes → vista Semana (+ fix altura Mes)
+- commit `d2b6517` (2026-07-02) — se extiende la misma funcionalidad al **mini-calendario**
 
 ## Módulo(s) afectado(s)
 `app-saas-frontend` — módulo calendario
@@ -78,4 +80,53 @@ stores, tipos ni componentes de terceros.
 - Code review de alto esfuerzo ejecutado: 3 hallazgos reales corregidos; el resto
   descartado con justificación (UX intencional, TZ preexistente, micro-optimizaciones).
 - `npm run type-check` sin errores en `CalendarView.vue`.
+- Falta `git push` (lo hace el usuario).
+
+---
+
+## Ampliación (2026-07-02) — Misma funcionalidad en el mini-calendario
+
+### Tarea solicitada
+Que el **mini-calendario** de la barra lateral tenga la misma funcionalidad que se
+agregó en la vista Mes: al seleccionar un día, pasar a la vista Semana.
+
+### Qué se hizo
+- `selectDate` (handler del mini-calendario, único consumidor) **delega ahora en
+  `handleDateClick`**, el mismo handler que usa la vista Mes. Antes solo fijaba
+  `selectedDate` (resaltaba el día sin navegar).
+- Resultado: clic en día del mini-calendario → **vista Semana** (desktop) / **vista
+  Día** (móvil) centrada en ese día, con `miniCalendarDate` sincronizado (incluye
+  días de arrastre de otro mes) y recarga de eventos del rango.
+
+```js
+const selectDate = (dateString) => {
+    handleDateClick(dateString)
+}
+```
+
+### Decisión
+- **Delegar en `handleDateClick` en vez de duplicar la lógica** → única fuente de
+  verdad; si el comportamiento del clic-en-día cambia, ambos caminos (vista Mes y
+  mini-calendario) quedan consistentes automáticamente. Sin problema de TDZ/hoisting:
+  `handleDateClick` solo se invoca en tiempo de clic, cuando ya está definido.
+
+### Alcance / no se tocó trabajo de otros
+- **1 archivo:** `src/views/CalendarView.vue` (+5/-2). Sin cambios en servicios,
+  stores, tipos ni componentes de terceros. `selectDate` no lo consume nada más.
+
+### Pruebas
+- Diff aislado confirmado (solo `CalendarView.vue`, +5/-2).
+- `npm run type-check`: sin errores en `CalendarView.vue` (los demás errores son
+  preexistentes en archivos ajenos).
+- No existen tests de calendario en el repo.
+- Revisión del flujo runtime: `selectDate → handleDateClick → loadEvents`;
+  `getWeekDays()` deriva de `selectedDate` → semana correcta y rango extendido en
+  semanas a caballo entre dos meses.
+- ⚠️ Verificación visual en navegador pendiente (login Auth0 bloquea automatización).
+
+### Commit y PR
+- Commit `d2b6517` en `feature/SCRUM-1290`.
+- El PR contra `main` muestra solo `CalendarView.vue` (+5/-2): el merge-base es
+  `5cc12bb`, así que el diff de tres puntos queda limpio pese a que la rama está
+  detrás de `main`.
 - Falta `git push` (lo hace el usuario).
