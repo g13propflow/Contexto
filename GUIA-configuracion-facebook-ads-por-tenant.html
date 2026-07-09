@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PropFlow · Guía de configuración de Facebook Ads por tenant</title>
+<style>
+  :root{
+    --fb:#1877F2; --fb-2:#0c5ec7; --fb-accent:#0c5ec7;
+    --ink:#1c2b33; --muted:#5b6b76; --line:#e4e9ee; --bg:#f4f7fa;
+    --card:#ffffff; --brand:#0047E5;
+    --amber-bg:#fff8eb; --amber-bd:#f5d58a; --amber-ink:#8a5a00;
+    --blue-bg:#eef4ff; --blue-bd:#bcd0ff; --blue-ink:#1b46a8;
+    --green-bg:#eefaf1; --green-bd:#b8e6c6; --green-ink:#1c7a3e;
+    --red-bg:#fdecec; --red-bd:#f3c0c0; --red-ink:#a12020;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:0 20px 80px;}
+
+  /* Header */
+  header.hero{
+    background:linear-gradient(135deg,var(--fb) 0%,var(--fb-2) 100%);
+    color:#fff; padding:44px 20px 40px; margin-bottom:28px;
+  }
+  header.hero .inner{max-width:900px; margin:0 auto; display:flex; gap:20px; align-items:flex-start;}
+  .logo{width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.14);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;backdrop-filter:blur(4px);}
+  header.hero h1{margin:0 0 6px; font-size:1.7rem; letter-spacing:-.02em;}
+  header.hero p{margin:0; opacity:.9; font-size:.98rem; max-width:640px;}
+  .tag{display:inline-block; margin-top:12px; font-size:.72rem; font-weight:600; letter-spacing:.04em;
+    text-transform:uppercase; background:rgba(255,255,255,.16); padding:4px 10px; border-radius:999px;}
+
+  /* TOC */
+  nav.toc{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 22px; margin-bottom:30px;}
+  nav.toc h2{margin:0 0 10px; font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  nav.toc ol{margin:0; padding-left:20px; columns:2; column-gap:32px;}
+  nav.toc li{margin:4px 0;}
+  nav.toc a{color:var(--brand); text-decoration:none; font-size:.92rem;}
+  nav.toc a:hover{text-decoration:underline;}
+
+  /* Phase */
+  .phase{margin:36px 0 8px;}
+  .phase h2{font-size:1.28rem; letter-spacing:-.01em; margin:0 0 4px; display:flex; align-items:center; gap:10px;}
+  .phase .pill{font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    color:#fff; background:var(--fb-2); padding:3px 9px; border-radius:999px;}
+  .phase .sub{color:var(--muted); margin:0 0 4px; font-size:.94rem;}
+
+  /* Step card */
+  .step{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px 16px; margin:14px 0; display:flex; gap:16px; align-items:flex-start;
+    transition:box-shadow .15s ease;}
+  .step:hover{box-shadow:0 4px 18px rgba(28,43,51,.06);}
+  .step .num{flex-shrink:0; width:34px; height:34px; border-radius:10px; background:var(--fb);
+    color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:.95rem;}
+  .step .body{flex:1; min-width:0;}
+  .step h3{margin:2px 0 6px; font-size:1.05rem;}
+  .step p{margin:0 0 8px;}
+  .step ul,.step ol{margin:6px 0 8px; padding-left:20px;}
+  .step li{margin:3px 0;}
+  .step .done-row{display:flex; align-items:center; gap:8px; margin-top:10px; padding-top:10px;
+    border-top:1px dashed var(--line);}
+  .step label.chk{display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.85rem; color:var(--muted); user-select:none;}
+  .step input[type=checkbox]{width:17px; height:17px; accent-color:var(--fb-2); cursor:pointer;}
+  .step.checked{opacity:.62;}
+  .step.checked h3{text-decoration:line-through; text-decoration-color:var(--muted);}
+
+  code{background:#eef1f4; padding:1px 6px; border-radius:5px; font-size:.86em;
+    font-family:"SF Mono", "Cascadia Code",Consolas,Menlo,monospace; color:var(--fb-2);}
+  .path{color:var(--brand); font-weight:600;}
+  kbd{background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 7px;font-size:.82em;}
+  .step table{width:100%; border-collapse:collapse; margin:10px 0; font-size:.88rem;}
+  .step th,.step td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  .step th{color:var(--muted); font-weight:600; font-size:.74rem; text-transform:uppercase; letter-spacing:.03em; background:#f8fafc;}
+  .step tbody tr:last-child td{border-bottom:none;}
+  .step td strong{color:var(--fb-2);}
+  .btn-lbl{display:inline-block; font-size:.8rem; font-weight:600; padding:2px 9px; border-radius:7px; white-space:nowrap;}
+  .btn-lbl.connect{background:var(--fb); color:#fff;}
+  .btn-lbl.config{background:#eef1f4; border:1px solid var(--line); color:var(--ink);}
+  .btn-lbl.disc{background:#fff; border:1px solid var(--red-bd); color:var(--red-ink);}
+  /* Diagrama de flujo OAuth */
+  ol.flow{list-style:none; counter-reset:f; margin:16px 0 8px; padding:0;}
+  ol.flow li{counter-increment:f; position:relative; padding:6px 0 14px 20px; margin-left:15px; border-left:2px solid var(--line);}
+  ol.flow li:last-child{border-left-color:transparent; padding-bottom:2px;}
+  ol.flow li::before{content:counter(f); position:absolute; left:-15px; top:2px; width:28px; height:28px; border-radius:50%;
+    background:var(--fb); color:#fff; font-weight:700; font-size:.82rem; display:flex; align-items:center; justify-content:center;}
+  .varbadge{display:inline-block; font-family:"SF Mono",Consolas,monospace; font-size:.78em; font-weight:700;
+    background:#e9f2fe; color:var(--fb-2); border:1px solid #c4dcfb; padding:1px 6px; border-radius:6px;}
+  table.reftbl{width:100%; border-collapse:collapse; margin:12px 0; font-size:.87rem;}
+  table.reftbl th,table.reftbl td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  table.reftbl th{color:var(--muted); font-weight:600; font-size:.74rem; text-transform:uppercase; letter-spacing:.03em; background:#f8fafc;}
+  table.reftbl tbody tr:last-child td{border-bottom:none;}
+  /* Mapa de pantallas (panorama) */
+  .map{margin:16px 0 6px;}
+  .map-box{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 16px;}
+  .map-box.source{border:1.5px solid var(--fb-2); background:linear-gradient(135deg,#f2f8ff,#fff);}
+  .map-h{font-weight:700; font-size:.98rem;}
+  .map-p{font-size:.76rem; margin:3px 0 7px;}
+  .map-p code{background:#eef4ff; color:var(--brand);}
+  .map-d{font-size:.85rem; color:var(--muted); line-height:1.45;}
+  .map-arrow{text-align:center; color:var(--fb-2); font-size:.78rem; font-weight:700; margin:11px 0;}
+  .map-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media(max-width:640px){ .map-row{grid-template-columns:1fr;} }
+
+  /* Callouts */
+  .note{border-radius:12px; padding:12px 16px; margin:12px 0; font-size:.9rem; border:1px solid;}
+  .note .lbl{font-weight:700; margin-right:6px;}
+  .note.warn{background:var(--amber-bg); border-color:var(--amber-bd); color:var(--amber-ink);}
+  .note.info{background:var(--blue-bg); border-color:var(--blue-bd); color:var(--blue-ink);}
+  .note.tip {background:var(--green-bg); border-color:var(--green-bd); color:var(--green-ink);}
+  .note.danger{background:var(--red-bg); border-color:var(--red-bd); color:var(--red-ink);}
+
+  .divider{height:1px; background:var(--line); margin:30px 0;}
+  footer{color:var(--muted); font-size:.82rem; text-align:center; margin-top:40px;}
+
+  .reset-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;
+    padding:6px 12px;font-size:.8rem;cursor:pointer;}
+  .reset-btn:hover{background:#eef1f4;}
+  .progress{position:sticky; top:0; z-index:5; height:5px; background:transparent;}
+  .progress > i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--fb),var(--fb-2)); transition:width .25s ease;}
+
+  /* Fases operativas colapsables */
+  details.phase-d{margin:30px 0 6px;}
+  details.phase-d>summary{list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px;
+    padding:14px 18px; background:#eef1f4; border:1px solid var(--line); border-radius:14px; transition:background .15s;}
+  details.phase-d>summary::-webkit-details-marker{display:none;}
+  details.phase-d>summary:hover{background:#e5eaf0;}
+  details.phase-d[open]>summary{border-bottom-left-radius:0; border-bottom-right-radius:0; background:#e5eaf0;}
+  .ph-title{font-size:1.1rem; font-weight:700; letter-spacing:-.01em;}
+  .ophint{margin-left:auto; font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--muted); border:1px solid var(--line); background:#fff; padding:2px 8px; border-radius:999px;}
+  .chev{color:var(--muted); transition:transform .2s ease; font-size:.85rem;}
+  details.phase-d[open]>summary .chev{transform:rotate(90deg);}
+  details.phase-d > .sub{margin-top:14px;}
+  details.phase-d .step:last-child{margin-bottom:4px;}
+
+  @media (max-width:640px){ nav.toc ol{columns:1;} header.hero h1{font-size:1.4rem;} }
+  @media print{
+    body{background:#fff;} header.hero{background:var(--fb)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .step:hover{box-shadow:none;} .progress,.reset-btn{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="progress"><i id="bar"></i></div>
+
+<header class="hero">
+  <div class="inner">
+    <div class="logo">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+        <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047v-2.66c0-3.025 1.792-4.697 4.533-4.697 1.313 0 2.686.236 2.686.236v2.971H15.83c-1.491 0-1.956.93-1.956 1.886v2.264h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Guía de configuración de Facebook Ads por tenant</h1>
+      <p>Cómo dejar Meta Ads funcionando <strong>con tu propia Facebook App</strong>: crear la app en el portal de Meta, registrar las URLs, cargar App ID / App Secret en PropFlow y conectar tu cuenta publicitaria.</p>
+      <span class="tag">PropFlow · SCRUM-1279</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <h2>Contenido</h2>
+    <ol>
+      <li><a href="#panorama">Panorama · Qué cambió</a></li>
+      <li><a href="#oauth">Referencia · Cómo funciona el OAuth</a></li>
+      <li><a href="#fase1">Fase 1 · Crear tu Facebook App (portal de Meta)</a></li>
+      <li><a href="#fase2">Fase 2 · Configurar y conectar en PropFlow</a></li>
+      <li><a href="#fase3">Fase 3 · Verificación</a></li>
+      <li><a href="#migrados">Tenants ya conectados + corte (DevOps)</a></li>
+      <li><a href="#problemas">Solución de problemas</a></li>
+    </ol>
+    <div style="margin-top:14px;text-align:right;">
+      <button class="reset-btn" onclick="resetChecks()">Reiniciar checklist</button>
+    </div>
+  </nav>
+
+  <div class="note info">
+    <span class="lbl">Antes de empezar:</span> necesitas acceso a <strong>PropFlow → Conexiones</strong> (permiso <code>connections.view</code>) y una cuenta con acceso de administrador en <a href="https://developers.facebook.com" target="_blank" rel="noopener">developers.facebook.com</a> del negocio. Todo se configura desde la app; no se editan variables globales.
+  </div>
+
+  <!-- Panorama -->
+  <section id="panorama" style="margin:6px 0 10px;">
+    <h2 style="font-size:1.18rem; letter-spacing:-.01em; margin:0 0 4px;">Panorama: qué cambió</h2>
+    <p style="margin:0 0 4px; color:var(--muted); font-size:.94rem;">Antes, todos los tenants compartían <em>una sola</em> Facebook App global de PropFlow. Ahora <strong>cada tenant registra la suya</strong>: las credenciales (<span class="varbadge">App ID</span> + <span class="varbadge">App Secret</span>) se guardan <strong>cifradas y aisladas por tenant</strong>, y todo el flujo OAuth (conectar, renovar el token, leer insights) usa exclusivamente tu app. Dos tenants pueden usar Facebook Apps completamente distintas sin interferirse.</p>
+    <div class="map">
+      <div class="map-row">
+        <div class="map-box source">
+          <div class="map-h">🛠️ Meta Developer Portal</div>
+          <div class="map-p"><code>developers.facebook.com</code></div>
+          <div class="map-d">Aquí <strong>nace</strong> tu Facebook App: creas la app, registras las URLs de PropFlow y obtienes el App ID / App Secret.</div>
+        </div>
+        <div class="map-box">
+          <div class="map-h">🔌 PropFlow → Conexiones</div>
+          <div class="map-p"><code>/dashboard/connections</code> · tarjeta <strong>Facebook Ads</strong></div>
+          <div class="map-d">Aquí <strong>se usan</strong>: botón <span class="btn-lbl config">Configurar App</span> para guardar las credenciales y ver las URLs a registrar, y <span class="btn-lbl connect">Conectar Facebook Ads</span> para autorizar y elegir la cuenta publicitaria.</div>
+        </div>
+      </div>
+      <div class="map-arrow">App ID + App Secret viajan del portal de Meta → al modal de PropFlow (una sola vez)</div>
+    </div>
+  </section>
+
+  <!-- OAuth reference -->
+  <section id="oauth" class="phase">
+    <h2><span class="pill">Referencia</span> Cómo funciona el OAuth (con tu app)</h2>
+    <p class="sub">No necesitas hacer nada de esto a mano — es lo que pasa por detrás cuando presionas <strong>Conectar</strong>.</p>
+    <div class="step" style="display:block;">
+      <ol class="flow">
+        <li><strong>Configurar App</strong> — guardas <span class="varbadge">App ID</span> y <span class="varbadge">App Secret</span>. PropFlow los valida contra Meta y los guarda <strong>cifrados</strong> en tu tenant. El secret nunca se vuelve a mostrar.</li>
+        <li><strong>Conectar</strong> — PropFlow construye la URL de autorización de Facebook usando <em>tu</em> App ID (permisos <code>ads_read</code> + <code>business_management</code>) y te redirige a Facebook.</li>
+        <li><strong>Autorizas</strong> en Facebook con tu usuario (que debe tener acceso a la cuenta publicitaria).</li>
+        <li><strong>Facebook redirige al backend de PropFlow</strong> (la <em>Redirect URI</em> que registraste en tu app) con un código temporal.</li>
+        <li><strong>Intercambio de tokens</strong> — el backend cambia el código por un token corto y luego por un <strong>token de larga duración (~60 días)</strong>, usando <em>tu</em> App Secret. Se guarda cifrado junto a tus credenciales.</li>
+        <li><strong>Eliges la cuenta publicitaria</strong> — al volver a Conexiones se abre el selector de cuentas (incluye cuentas de negocio/agencia).</li>
+        <li><strong>Renovación automática</strong> — un proceso diario renueva el token antes de que venza, siempre con las credenciales de <em>tu</em> app. Mientras no lo desconectes, no vuelves a iniciar sesión.</li>
+      </ol>
+    </div>
+    <div class="note info"><span class="lbl">Dato:</span> un token solo puede renovarlo <strong>la app que lo emitió</strong>. Por eso, si cambias de Facebook App, hay que <strong>reconectar</strong> (paso Conectar de nuevo).</div>
+  </section>
+
+  <!-- Fase 1 -->
+  <section id="fase1" class="phase">
+    <h2><span class="pill">Fase 1</span> Crear tu Facebook App (portal de Meta)</h2>
+    <p class="sub">Una sola vez por tenant. Lo hace alguien con acceso al Business Manager del negocio.</p>
+
+    <div class="step" data-id="f1-crear">
+      <div class="num">1</div>
+      <div class="body">
+        <h3>Crea la app en developers.facebook.com</h3>
+        <p>Entra a <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener">developers.facebook.com/apps</a> → <strong>Create App</strong>.</p>
+        <ul>
+          <li>Caso de uso / tipo: <strong>Other → Business</strong> (según la versión del portal, elige el tipo <em>Negocios</em>).</li>
+          <li>Ponle un nombre reconocible (ej. <code>PropFlow Ads — MiInmobiliaria</code>) y asóciala al <strong>Business Manager</strong> del negocio.</li>
+        </ul>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+
+    <div class="step" data-id="f1-login">
+      <div class="num">2</div>
+      <div class="body">
+        <h3>Agrega el producto Facebook Login</h3>
+        <p>En el panel de la app: <span class="path">Add Product</span> → <strong>Facebook Login</strong> → configuración tipo <em>Web</em>. No necesitas completar el "quickstart"; con que el producto quede agregado basta.</p>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+
+    <div class="step" data-id="f1-urls">
+      <div class="num">3</div>
+      <div class="body">
+        <h3>Registra las URLs de PropFlow (Valid OAuth Redirect URIs)</h3>
+        <p>Ve a <span class="path">Facebook Login → Settings → Valid OAuth Redirect URIs</span> y pega las <strong>2 URLs</strong> que PropFlow te muestra en el modal <span class="btn-lbl config">Configurar App</span> (cada una tiene botón de <strong>copiar</strong>):</p>
+        <table>
+          <thead><tr><th>Campo en PropFlow</th><th>Qué es</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Redirect URI (OAuth)</strong></td><td>A dónde redirige Facebook después de autorizar (backend de PropFlow). <em>Obligatoria.</em></td></tr>
+            <tr><td><strong>URL de retorno (frontend)</strong></td><td>A dónde vuelves dentro de PropFlow al terminar. Regístrala también para evitar bloqueos de dominio.</td></tr>
+          </tbody>
+        </table>
+        <div class="note warn"><span class="lbl">Importante:</span> si la Redirect URI no está registrada <em>exactamente igual</em>, Facebook rechaza la conexión con el error <code>redirect_uri mismatch</code>. Usa el botón copiar, no la escribas a mano.</div>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+
+    <div class="step" data-id="f1-creds">
+      <div class="num">4</div>
+      <div class="body">
+        <h3>Copia el App ID y el App Secret</h3>
+        <p>Ve a <span class="path">App Settings → Basic</span>:</p>
+        <ul>
+          <li><span class="varbadge">App ID</span> — número visible arriba.</li>
+          <li><span class="varbadge">App Secret</span> — botón <strong>Show</strong> (te pedirá tu contraseña de Facebook).</li>
+        </ul>
+        <div class="note danger"><span class="lbl">Seguridad:</span> el App Secret es una credencial sensible. No la compartas por chat/correo; pégala directo en PropFlow. Ahí se guarda cifrada y <strong>nunca se vuelve a mostrar</strong>.</div>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+
+    <div class="step" data-id="f1-modo">
+      <div class="num">5</div>
+      <div class="body">
+        <h3>Verifica el modo de la app y quién puede conectar</h3>
+        <p>La integración pide los permisos <code>ads_read</code> y <code>business_management</code>.</p>
+        <ul>
+          <li>Con la app en <strong>modo desarrollo</strong> (Development), solo pueden autorizar los usuarios con rol en la app (<span class="path">App Roles → Roles</span>: admin, developer o tester). Agrega ahí al usuario que hará la conexión — para uso interno del negocio esto suele ser suficiente.</li>
+          <li>Para pasarla a <strong>Live</strong> y que autorice cualquier usuario del negocio, Meta puede requerir <em>Business Verification</em> / App Review para los permisos de anuncios.</li>
+        </ul>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Fase 2 -->
+  <section id="fase2" class="phase">
+    <h2><span class="pill">Fase 2</span> Configurar y conectar en PropFlow</h2>
+    <p class="sub">En <span class="path">PropFlow → Conexiones</span> (<code>/dashboard/connections</code>), tarjeta <strong>Facebook Ads</strong>.</p>
+
+    <div class="step" data-id="f2-modal">
+      <div class="num">1</div>
+      <div class="body">
+        <h3>Abre "Configurar App" y guarda tus credenciales</h3>
+        <p>Si el tenant no tiene app configurada, la tarjeta muestra en ámbar <em>"Configura tu Facebook App para poder conectar"</em> y el botón <span class="btn-lbl connect">Conectar Facebook Ads</span> aparece deshabilitado.</p>
+        <ol>
+          <li>Presiona <span class="btn-lbl config">Configurar App</span>.</li>
+          <li>El modal muestra arriba las <strong>2 URLs para el portal de Meta</strong> (si aún no las registraste, este es el momento — botón copiar).</li>
+          <li>Pega el <span class="varbadge">App ID</span> y el <span class="varbadge">App Secret</span> → <strong>Guardar credenciales</strong>.</li>
+        </ol>
+        <p>PropFlow valida el par contra Meta: si el App ID o el Secret están mal, verás el error en rojo dentro del modal. Al guardar bien, sale el toast verde y la tarjeta pasa a <em>"No conectado"</em> con <span class="btn-lbl connect">Conectar Facebook Ads</span> habilitado.</p>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+
+    <div class="step" data-id="f2-conectar">
+      <div class="num">2</div>
+      <div class="body">
+        <h3>Conecta tu cuenta de Facebook</h3>
+        <p>Presiona <span class="btn-lbl connect">Conectar Facebook Ads</span> → Facebook te pide iniciar sesión y autorizar. Usa un usuario que:</p>
+        <ul>
+          <li>tenga <strong>acceso a la cuenta publicitaria</strong> del negocio, y</li>
+          <li>tenga <strong>rol en tu Facebook App</strong> si la app sigue en modo desarrollo (Fase 1, paso 5).</li>
+        </ul>
+        <p>Al autorizar, vuelves automáticamente a Conexiones.</p>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+
+    <div class="step" data-id="f2-cuenta">
+      <div class="num">3</div>
+      <div class="body">
+        <h3>Elige la cuenta publicitaria</h3>
+        <p>Se abre solo el selector de cuentas (también con <span class="btn-lbl config">Cambiar cuenta</span>). Lista tus cuentas directas y las de Business Manager/agencia; las inactivas aparecen deshabilitadas. Selecciona la correcta → <strong>Guardar cuenta</strong>.</p>
+        <div class="note tip"><span class="lbl">Tip:</span> si más adelante cambias de cuenta publicitaria, usa <em>Cambiar cuenta</em> — no hace falta reconectar ni tocar credenciales.</div>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Fase 3 -->
+  <section id="fase3" class="phase">
+    <h2><span class="pill">Fase 3</span> Verificación</h2>
+    <p class="sub">Checklist para dar la integración por lista.</p>
+
+    <div class="step" data-id="f3-estado">
+      <div class="num">1</div>
+      <div class="body">
+        <h3>La tarjeta queda en verde</h3>
+        <p><em>"Conectado — {nombre de tu cuenta}"</em> con la fecha de expiración del token (~60 días). No tienes que renovarlo: se refresca solo cada día que falten menos de 30 días.</p>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+
+    <div class="step" data-id="f3-datos">
+      <div class="num">2</div>
+      <div class="body">
+        <h3>Llegan datos de campañas</h3>
+        <p>La sincronización de insights corre <strong>cada 6 horas</strong>. Tras el próximo ciclo, revisa <span class="path">Dashboard → Marketing</span> y <span class="path">Campañas</span>: deben aparecer gasto, clics e impresiones de la cuenta seleccionada.</p>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+
+    <div class="step" data-id="f3-editar">
+      <div class="num">3</div>
+      <div class="body">
+        <h3>Conoce los controles de la tarjeta</h3>
+        <table>
+          <thead><tr><th>Botón</th><th>Qué hace</th></tr></thead>
+          <tbody>
+            <tr><td><span class="btn-lbl config">Configurar App</span></td><td>Editar credenciales de la app. El App ID aparece pre-cargado; el <strong>Secret hay que ingresarlo de nuevo</strong> (nunca se muestra). Si cambias de app, después <strong>reconecta</strong>.</td></tr>
+            <tr><td><span class="btn-lbl config">Cambiar cuenta</span></td><td>Elegir otra cuenta publicitaria sin reconectar.</td></tr>
+            <tr><td><span class="btn-lbl disc">Desconectar</span></td><td>Elimina el token y la cuenta seleccionada, pero <strong>conserva tus credenciales de la app</strong> — para volver, solo presiona Conectar.</td></tr>
+          </tbody>
+        </table>
+        <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Migración / DevOps -->
+  <details class="phase-d" id="migrados">
+    <summary><span class="chev">▶</span><span class="ph-title">Tenants ya conectados + corte de las credenciales globales</span><span class="ophint">Equipo PropFlow / DevOps</span></summary>
+    <div class="sub">
+      <div class="note info"><span class="lbl">Contexto:</span> los tenants que conectaron <em>antes</em> de este cambio tienen un token emitido por la antigua app global. Como un token solo lo renueva la app que lo emitió, el corte se hace en este orden.</div>
+
+      <div class="step" data-id="op-backfill">
+        <div class="num">1</div>
+        <div class="body">
+          <h3>Backfill (una sola vez, antes de retirar las variables)</h3>
+          <p>Con <code>FACEBOOK_APP_ID</code> / <code>FACEBOOK_APP_SECRET</code> aún presentes en el entorno de producción, dentro del contenedor del API:</p>
+          <ul>
+            <li><code>python scripts/backfill_facebook_app_credentials.py --dry-run</code> — revisa qué tenants se actualizarían.</li>
+            <li><code>python scripts/backfill_facebook_app_credentials.py</code> — inyecta las credenciales globales en el JSON de cada tenant conectado que no tenga las suyas (idempotente; nunca sobrescribe credenciales propias).</li>
+          </ul>
+          <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+        </div>
+      </div>
+
+      <div class="step" data-id="op-vars">
+        <div class="num">2</div>
+        <div class="body">
+          <h3>Retirar las variables globales</h3>
+          <p>Eliminar <code>FACEBOOK_APP_ID</code> y <code>FACEBOOK_APP_SECRET</code> del entorno de producción (Azure). <strong>Se conservan</strong> <span class="varbadge">FACEBOOK_REDIRECT_URI</span> y <span class="varbadge">FACEBOOK_FRONTEND_REDIRECT_URL</span> — son infraestructura del servicio (y alimentan las URLs del modal).</p>
+          <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+        </div>
+      </div>
+
+      <div class="step" data-id="op-migrar">
+        <div class="num">3</div>
+        <div class="body">
+          <h3>Migración de cada tenant a su propia app (a su ritmo)</h3>
+          <p>Los tenants con backfill siguen funcionando con la app global inyectada. Para migrar a su app propia: <span class="btn-lbl config">Configurar App</span> con sus credenciales (Fase 1) → <span class="btn-lbl connect">Reconectar</span> (re-OAuth, porque el token anterior pertenece a la app vieja).</p>
+          <div class="done-row"><label class="chk"><input type="checkbox">Listo</label></div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- Troubleshooting -->
+  <section id="problemas" class="phase">
+    <h2><span class="pill">Ayuda</span> Solución de problemas</h2>
+    <table class="reftbl">
+      <thead><tr><th>Síntoma</th><th>Causa</th><th>Solución</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>"Configura tu Facebook App…" y Conectar deshabilitado</td>
+          <td>El tenant aún no registró credenciales.</td>
+          <td>Botón <strong>Configurar App</strong> → guardar App ID + Secret (Fase 2, paso 1).</td>
+        </tr>
+        <tr>
+          <td>Error rojo <em>"Invalid Facebook App credentials"</em> al guardar</td>
+          <td>App ID o App Secret mal copiados.</td>
+          <td>Recopiarlos de <span class="path">App Settings → Basic</span> (el Secret con <em>Show</em>). El App ID es solo números.</td>
+        </tr>
+        <tr>
+          <td>Facebook muestra <code>redirect_uri mismatch</code> / "URL bloqueada"</td>
+          <td>La Redirect URI no está en <em>Valid OAuth Redirect URIs</em> de tu app.</td>
+          <td>Copiar las 2 URLs desde el modal (botón copiar) y pegarlas en <span class="path">Facebook Login → Settings</span> (Fase 1, paso 3).</td>
+        </tr>
+        <tr>
+          <td>"This app isn't available" / no deja autorizar</td>
+          <td>App en modo desarrollo y el usuario no tiene rol en ella.</td>
+          <td>Agregarlo en <span class="path">App Roles → Roles</span>, o pasar la app a Live (Fase 1, paso 5).</td>
+        </tr>
+        <tr>
+          <td>Vuelves con <code>?facebook=error&amp;reason=app_credentials_missing</code></td>
+          <td>Se inició el OAuth sin credenciales guardadas (caso raro).</td>
+          <td>Configurar App y volver a Conectar.</td>
+        </tr>
+        <tr>
+          <td>Tarjeta en rojo: <em>"Token expirado"</em></td>
+          <td>El token venció sin renovarse (p. ej. estuvo desconectado o cambió la app).</td>
+          <td>Botón <strong>Reconectar</strong> (re-OAuth con las credenciales guardadas).</td>
+        </tr>
+        <tr>
+          <td>El selector no muestra tu cuenta publicitaria</td>
+          <td>El usuario que autorizó no tiene acceso a esa cuenta en Business Manager.</td>
+          <td>Darle acceso a la cuenta (o autorizar con otro usuario) y <strong>Reconectar</strong>.</td>
+        </tr>
+        <tr>
+          <td>Conectado pero sin datos en Marketing/Campañas</td>
+          <td>El sync corre cada 6 h; o la cuenta elegida no es la que tiene campañas.</td>
+          <td>Esperar el próximo ciclo o <strong>Cambiar cuenta</strong> a la correcta.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    PropFlow · Guía de configuración de Facebook Ads por tenant · SCRUM-1279 · 2026-07-03
+  </footer>
+</div>
+
+<script>
+  const KEY = 'guia-facebook-ads-tenant-v1';
+  function load(){
+    let saved = {};
+    try{ saved = JSON.parse(localStorage.getItem(KEY) || '{}'); }catch(e){}
+    document.querySelectorAll('.step').forEach(step=>{
+      const cb = step.querySelector('input[type=checkbox]');
+      if(cb && saved[step.getAttribute('data-id')]){
+        cb.checked = true; step.classList.add('checked');
+      }
+    });
+    updateProgress();
+  }
+  function save(){
+    const saved = {};
+    document.querySelectorAll('.step').forEach(step=>{
+      const cb = step.querySelector('input[type=checkbox]');
+      if(cb) saved[step.getAttribute('data-id')] = cb.checked;
+    });
+    localStorage.setItem(KEY, JSON.stringify(saved));
+  }
+  function updateProgress(){
+    const all = [...document.querySelectorAll('.step input[type=checkbox]')];
+    const done = all.filter(c=>c.checked).length;
+    const pct = all.length ? Math.round(done/all.length*100) : 0;
+    document.getElementById('bar').style.width = pct + '%';
+  }
+  function resetChecks(){
+    localStorage.removeItem(KEY);
+    document.querySelectorAll('.step input[type=checkbox]').forEach(cb=>{cb.checked=false; cb.closest('.step').classList.remove('checked');});
+    updateProgress();
+  }
+  document.addEventListener('change', e=>{
+    if(e.target.matches('.step input[type=checkbox]')){
+      e.target.closest('.step').classList.toggle('checked', e.target.checked);
+      save(); updateProgress();
+    }
+  });
+  // Abrir la fase colapsada al navegar desde el índice
+  function openTarget(){
+    const id = location.hash.slice(1);
+    if(!id) return;
+    const el = document.getElementById(id);
+    if(el && el.tagName === 'DETAILS'){ el.open = true; }
+  }
+  document.querySelectorAll('nav.toc a').forEach(a=>a.addEventListener('click', ()=>{
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if(el && el.tagName === 'DETAILS'){ el.open = true; }
+  }));
+  window.addEventListener('hashchange', openTarget);
+  openTarget();
+  load();
+</script>
+</body>
+</html>

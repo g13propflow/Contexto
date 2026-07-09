@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PropFlow · Guía de configuración de Slack por tenant</title>
+<style>
+  :root{
+    --slack:#4A154B; --slack-2:#611f69; --slack-accent:#611f69;
+    --ink:#1d1c1d; --muted:#616061; --line:#e8e6e9; --bg:#f7f6f8;
+    --card:#ffffff; --brand:#0047E5;
+    --amber-bg:#fff8eb; --amber-bd:#f5d58a; --amber-ink:#8a5a00;
+    --blue-bg:#eef4ff; --blue-bd:#bcd0ff; --blue-ink:#1b46a8;
+    --green-bg:#eefaf1; --green-bd:#b8e6c6; --green-ink:#1c7a3e;
+    --red-bg:#fdecec; --red-bd:#f3c0c0; --red-ink:#a12020;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:0 20px 80px;}
+
+  /* Header */
+  header.hero{
+    background:linear-gradient(135deg,var(--slack) 0%,var(--slack-2) 100%);
+    color:#fff; padding:44px 20px 40px; margin-bottom:28px;
+  }
+  header.hero .inner{max-width:900px; margin:0 auto; display:flex; gap:20px; align-items:flex-start;}
+  .logo{width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.14);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;backdrop-filter:blur(4px);}
+  header.hero h1{margin:0 0 6px; font-size:1.7rem; letter-spacing:-.02em;}
+  header.hero p{margin:0; opacity:.9; font-size:.98rem; max-width:640px;}
+  .tag{display:inline-block; margin-top:12px; font-size:.72rem; font-weight:600; letter-spacing:.04em;
+    text-transform:uppercase; background:rgba(255,255,255,.16); padding:4px 10px; border-radius:999px;}
+
+  /* TOC */
+  nav.toc{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 22px; margin-bottom:30px;}
+  nav.toc h2{margin:0 0 10px; font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  nav.toc ol{margin:0; padding-left:20px; columns:2; column-gap:32px;}
+  nav.toc li{margin:4px 0;}
+  nav.toc a{color:var(--brand); text-decoration:none; font-size:.92rem;}
+  nav.toc a:hover{text-decoration:underline;}
+
+  /* Phase */
+  .phase{margin:36px 0 8px;}
+  .phase h2{font-size:1.28rem; letter-spacing:-.01em; margin:0 0 4px; display:flex; align-items:center; gap:10px;}
+  .phase .pill{font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    color:#fff; background:var(--slack-2); padding:3px 9px; border-radius:999px;}
+  .phase .sub{color:var(--muted); margin:0 0 4px; font-size:.94rem;}
+
+  /* Step card */
+  .step{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px 16px; margin:14px 0; display:flex; gap:16px; align-items:flex-start;
+    transition:box-shadow .15s ease;}
+  .step:hover{box-shadow:0 4px 18px rgba(29,28,29,.06);}
+  .step .num{flex-shrink:0; width:34px; height:34px; border-radius:10px; background:var(--slack);
+    color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:.95rem;}
+  .step .body{flex:1; min-width:0;}
+  .step h3{margin:2px 0 6px; font-size:1.05rem;}
+  .step p{margin:0 0 8px;}
+  .step ul,.step ol{margin:6px 0 8px; padding-left:20px;}
+  .step li{margin:3px 0;}
+  .step .done-row{display:flex; align-items:center; gap:8px; margin-top:10px; padding-top:10px;
+    border-top:1px dashed var(--line);}
+  .step label.chk{display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.85rem; color:var(--muted); user-select:none;}
+  .step input[type=checkbox]{width:17px; height:17px; accent-color:var(--slack-2); cursor:pointer;}
+  .step.checked{opacity:.62;}
+  .step.checked h3{text-decoration:line-through; text-decoration-color:var(--muted);}
+
+  code{background:#f0eef1; padding:1px 6px; border-radius:5px; font-size:.86em;
+    font-family:"SF Mono", "Cascadia Code",Consolas,Menlo,monospace; color:var(--slack-2);}
+  .path{color:var(--brand); font-weight:600;}
+  kbd{background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 7px;font-size:.82em;}
+  .step table{width:100%; border-collapse:collapse; margin:10px 0; font-size:.88rem;}
+  .step th,.step td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  .step th{color:var(--muted); font-weight:600; font-size:.74rem; text-transform:uppercase; letter-spacing:.03em; background:#faf9fb;}
+  .step tbody tr:last-child td{border-bottom:none;}
+  .step td strong{color:var(--slack-2);}
+  .btn-lbl{display:inline-block; font-size:.8rem; font-weight:600; padding:2px 9px; border-radius:7px; white-space:nowrap;}
+  .btn-lbl.connect{background:var(--slack); color:#fff;}
+  .btn-lbl.test{background:#fff; border:1px solid var(--line); color:var(--muted);}
+  .btn-lbl.disc{background:#fff; border:1px solid var(--red-bd); color:var(--red-ink);}
+  /* Diagrama de flujo OAuth */
+  ol.flow{list-style:none; counter-reset:f; margin:16px 0 8px; padding:0;}
+  ol.flow li{counter-increment:f; position:relative; padding:6px 0 14px 20px; margin-left:15px; border-left:2px solid var(--line);}
+  ol.flow li:last-child{border-left-color:transparent; padding-bottom:2px;}
+  ol.flow li::before{content:counter(f); position:absolute; left:-15px; top:2px; width:28px; height:28px; border-radius:50%;
+    background:var(--slack); color:#fff; font-weight:700; font-size:.82rem; display:flex; align-items:center; justify-content:center;}
+  .varbadge{display:inline-block; font-family:"SF Mono",Consolas,monospace; font-size:.78em; font-weight:700;
+    background:#f7ecfa; color:var(--slack-2); border:1px solid #e6c9ee; padding:1px 6px; border-radius:6px;}
+  table.reftbl{width:100%; border-collapse:collapse; margin:12px 0; font-size:.87rem;}
+  table.reftbl th,table.reftbl td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  table.reftbl th{color:var(--muted); font-weight:600; font-size:.74rem; text-transform:uppercase; letter-spacing:.03em; background:#faf9fb;}
+  table.reftbl tbody tr:last-child td{border-bottom:none;}
+  /* Mapa de pantallas (panorama) */
+  .map{margin:16px 0 6px;}
+  .map-box{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 16px;}
+  .map-box.source{border:1.5px solid var(--slack-2); background:linear-gradient(135deg,#faf4fb,#fff);}
+  .map-h{font-weight:700; font-size:.98rem;}
+  .map-p{font-size:.76rem; margin:3px 0 7px;}
+  .map-p code{background:#eef4ff; color:var(--brand);}
+  .map-d{font-size:.85rem; color:var(--muted); line-height:1.45;}
+  .map-arrow{text-align:center; color:var(--slack-2); font-size:.78rem; font-weight:700; margin:11px 0;}
+  .map-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media(max-width:640px){ .map-row{grid-template-columns:1fr;} }
+
+  /* Callouts */
+  .note{border-radius:12px; padding:12px 16px; margin:12px 0; font-size:.9rem; border:1px solid;}
+  .note .lbl{font-weight:700; margin-right:6px;}
+  .note.warn{background:var(--amber-bg); border-color:var(--amber-bd); color:var(--amber-ink);}
+  .note.info{background:var(--blue-bg); border-color:var(--blue-bd); color:var(--blue-ink);}
+  .note.tip {background:var(--green-bg); border-color:var(--green-bd); color:var(--green-ink);}
+  .note.danger{background:var(--red-bg); border-color:var(--red-bd); color:var(--red-ink);}
+
+  .divider{height:1px; background:var(--line); margin:30px 0;}
+  footer{color:var(--muted); font-size:.82rem; text-align:center; margin-top:40px;}
+
+  .reset-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;
+    padding:6px 12px;font-size:.8rem;cursor:pointer;}
+  .reset-btn:hover{background:#f0eef1;}
+  .progress{position:sticky; top:0; z-index:5; height:5px; background:transparent;}
+  .progress > i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--slack),var(--slack-2)); transition:width .25s ease;}
+
+  /* Fases operativas colapsables */
+  details.phase-d{margin:30px 0 6px;}
+  details.phase-d>summary{list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px;
+    padding:14px 18px; background:#f0eef1; border:1px solid var(--line); border-radius:14px; transition:background .15s;}
+  details.phase-d>summary::-webkit-details-marker{display:none;}
+  details.phase-d>summary:hover{background:#e9e6eb;}
+  details.phase-d[open]>summary{border-bottom-left-radius:0; border-bottom-right-radius:0; background:#e9e6eb;}
+  .ph-title{font-size:1.1rem; font-weight:700; letter-spacing:-.01em;}
+  .ophint{margin-left:auto; font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--muted); border:1px solid var(--line); background:#fff; padding:2px 8px; border-radius:999px;}
+  .chev{color:var(--muted); transition:transform .2s ease; font-size:.85rem;}
+  details.phase-d[open]>summary .chev{transform:rotate(90deg);}
+  details.phase-d > .sub{margin-top:14px;}
+  details.phase-d .step:last-child{margin-bottom:4px;}
+
+  @media (max-width:640px){ nav.toc ol{columns:1;} header.hero h1{font-size:1.4rem;} }
+  @media print{
+    body{background:#fff;} header.hero{background:var(--slack)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .step:hover{box-shadow:none;} .progress,.reset-btn{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="progress"><i id="bar"></i></div>
+
+<header class="hero">
+  <div class="inner">
+    <div class="logo">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+        <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zm-1.27 0a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.163 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.163 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.163 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zm0-1.27a2.527 2.527 0 0 1-2.52-2.523 2.527 2.527 0 0 1 2.52-2.52h6.315A2.528 2.528 0 0 1 24 15.163a2.528 2.528 0 0 1-2.522 2.523h-6.315z"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Guía de configuración de Slack por tenant</h1>
+      <p>Cómo dejar la integración de Slack lista <strong>después de la migración</strong>: credenciales por tenant, switch maestro, canales, ruteo por tipo de notificación y canal por proyecto.</p>
+      <span class="tag">PropFlow · SCRUM-1278</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <h2>Contenido</h2>
+    <ol>
+      <li><a href="#panorama">Panorama · Las 3 pantallas</a></li>
+      <li><a href="#oauth">Referencia · Cómo funciona el OAuth</a></li>
+      <li><a href="#fase0">Fase 0 · Infraestructura (DevOps, una vez)</a></li>
+      <li><a href="#fase1">Fase 1 · Configuración por tenant (owner)</a></li>
+      <li><a href="#fase2">Fase 2 · Ruteo y afinamiento</a></li>
+      <li><a href="#fase3">Fase 3 · Verificación y corte de n8n</a></li>
+      <li><a href="#migrados">Tenants ya conectados</a></li>
+    </ol>
+    <div style="margin-top:14px;text-align:right;">
+      <button class="reset-btn" onclick="resetChecks()">Reiniciar checklist</button>
+    </div>
+  </nav>
+
+  <div class="note info">
+    <span class="lbl">Antes de empezar:</span> necesitas el rol <strong>owner</strong> (o <code>system_admin</code>) en tu tenant. Todo se configura desde la app; ya no se edita código ni variables globales.
+  </div>
+
+  <!-- Panorama -->
+  <section id="panorama" style="margin:6px 0 10px;">
+    <h2 style="font-size:1.18rem; letter-spacing:-.01em; margin:0 0 4px;">Panorama: las 3 pantallas y cómo se relacionan</h2>
+    <p style="margin:0 0 4px; color:var(--muted); font-size:.94rem;">Creamos <strong>3 pantallas</strong> para administrar Slack por tenant. <strong>Ajustes → Slack</strong> es donde <em>nacen</em> los canales (los conectas); las otras dos <em>usan</em> esos canales para decidir a dónde va cada mensaje.</p>
+    <div class="map">
+      <div class="map-box source">
+        <div class="map-h">🎛️ Ajustes → Slack</div>
+        <div class="map-p"><code>/dashboard/settings</code></div>
+        <div class="map-d">Credenciales + switch maestro + <strong>conectar canales</strong> (General, HITL, …). Aquí <strong>nacen</strong> los canales del tenant.</div>
+      </div>
+      <div class="map-arrow">▼&nbsp;&nbsp;los canales <strong>conectados</strong> quedan disponibles para&nbsp;&nbsp;▼</div>
+      <div class="map-row">
+        <div class="map-box">
+          <div class="map-h">🔔 Notificaciones → Administración</div>
+          <div class="map-p"><code>/dashboard/notifications</code></div>
+          <div class="map-d">Ruteo por <strong>tipo</strong> de notificación: a qué canal va cada tipo + si es "obligatorio".</div>
+        </div>
+        <div class="map-box">
+          <div class="map-h">🔌 Conexiones</div>
+          <div class="map-p"><code>/dashboard/connections</code></div>
+          <div class="map-d">Ruteo por <strong>proyecto</strong>: canal propio para el aviso de <strong>visita agendada</strong>.</div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:.85rem; color:var(--muted); margin:4px 0 0;">Orden natural: <strong>1)</strong> conectar canales en Ajustes → <strong>2)</strong> rutear por tipo (Notificaciones) y/o por proyecto (Conexiones). Las fases de abajo lo detallan paso a paso 👇</p>
+  </section>
+
+  <!-- Referencia OAuth -->
+  <details class="phase-d" id="oauth">
+    <summary><span class="pill">Referencia</span> <span class="ph-title">¿Cómo funciona el OAuth de Slack?</span> <span class="chev">▸</span></summary>
+    <p class="sub">Conectar un canal = obtener su <em>webhook URL</em> mediante el "baile" OAuth de Slack. Aquí ves el flujo completo y dónde entra cada variable.</p>
+
+    <ol class="flow">
+      <li>El usuario pulsa <strong>Conectar</strong> en la tarjeta de un canal.</li>
+      <li>Frontend → <code>GET /integrations/slack/connect?channel_purpose=…</code>. El backend arma la URL de autorización de Slack con el <code>client_id</code> del tenant, <code>scope=incoming-webhook</code>, <code>redirect_uri=</code><span class="varbadge">SLACK_REDIRECT_URI</span> y un <code>state</code> (<code>tenant:purpose:nonce</code>).</li>
+      <li>El navegador va a <strong>slack.com</strong>; el usuario autoriza la app y <strong>elige el canal</strong> destino.</li>
+      <li>Slack redirige el navegador a <span class="varbadge">SLACK_REDIRECT_URI</span><code>?code=…&amp;state=…</code> → es decir, "llama de vuelta" a <strong>nuestro backend</strong> (endpoint <code>/callback</code>).</li>
+      <li><code>/callback</code> intercambia el <code>code</code> (con <code>client_id</code>+<code>client_secret</code> del tenant) en <code>slack.com/api/oauth.v2.access</code> → obtiene el <strong>webhook URL</strong> y lo guarda en <code>tenant_slack_config</code>.</li>
+      <li>El backend redirige el navegador a <span class="varbadge">SLACK_FRONTEND_REDIRECT_URL</span><code>?slack=success</code>.</li>
+      <li>El usuario aterriza de vuelta en <strong>Ajustes → Slack</strong> con la tarjeta en <strong>"Conectado ✅"</strong>.</li>
+    </ol>
+
+    <p><strong>Por qué una exige https y la otra no:</strong></p>
+    <table class="reftbl">
+      <thead><tr><th>Variable</th><th>Quién la llama</th><th>¿https?</th></tr></thead>
+      <tbody>
+        <tr><td><code>SLACK_REDIRECT_URI</code></td><td><strong>Slack</strong> (servidor externo) → tu backend</td><td>Sí — por eso ngrok en local</td></tr>
+        <tr><td><code>SLACK_FRONTEND_REDIRECT_URL</code></td><td>Tu <strong>backend</strong> → el navegador (ya local)</td><td>No — <code>http://localhost</code> sirve</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>¿De dónde sale cada valor?</strong></p>
+    <table class="reftbl">
+      <thead><tr><th>Valor</th><th>De dónde lo sacas</th></tr></thead>
+      <tbody>
+        <tr><td><code>client_id</code> / <code>client_secret</code></td><td>De la <strong>Slack App</strong> del tenant → <em>api.slack.com/apps → tu app → Basic Information → App Credentials</em>. Se pegan en la UI (Ajustes → Slack), <strong>no</strong> son env vars.</td></tr>
+        <tr><td>Ruta <code>/api/v1/integrations/slack/callback</code></td><td><strong>Fija</strong>, viene del código (router <code>slack_config.py</code> con prefijo <code>/integrations/slack</code>, montado bajo <code>/api/v1</code>). No cambia nunca.</td></tr>
+        <tr><td>Ruta <code>/dashboard/settings</code></td><td><strong>Fija</strong>, es la ruta del front (router del SPA — la pantalla con la pestaña Slack).</td></tr>
+        <tr><td>Dominio del <strong>backend</strong> (para <code>SLACK_REDIRECT_URI</code>)</td><td><strong>Local:</strong> la URL pública que te da <code>ngrok http 8000</code>. <strong>Prod:</strong> el dominio real del API — míralo en el <code>VITE_API_BASE_URL</code> de producción, o en la config de Traefik / pregúntalo a DevOps.</td></tr>
+        <tr><td>Dominio del <strong>front</strong> (para <code>SLACK_FRONTEND_REDIRECT_URL</code>)</td><td><strong>Local:</strong> <code>http://localhost:5173</code> (Vite). <strong>Prod:</strong> el dominio público del frontend.</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:.86rem;color:var(--muted);">Armas la variable = <strong>dominio</strong> (según entorno) + <strong>ruta fija</strong>. Ej. local: <code>https://ab12.ngrok-free.app</code> + <code>/api/v1/integrations/slack/callback</code>.</p>
+  </details>
+
+  <!-- FASE 0 -->
+  <details class="phase-d" id="fase0">
+    <summary><span class="pill">Fase 0</span> <span class="ph-title">Infraestructura del entorno</span> <span class="ophint">DevOps · una vez</span> <span class="chev">▸</span></summary>
+    <p class="sub">Una sola vez por entorno, la hace DevOps. El resto de las fases dependen de esto.</p>
+
+  <div class="step" data-id="s0-1">
+    <div class="num">1</div>
+    <div class="body">
+      <h3>Dar valor a las URLs globales de OAuth</h3>
+      <div class="note info"><span class="lbl">ℹ️ No es desarrollo nuevo:</span> estas 2 variables <strong>ya existen</strong> en <code>config/settings.py</code> (<code>slack_redirect_uri</code> y <code>slack_frontend_redirect_url</code>) desde antes de esta tarea, y el código ya las usa. Solo están <strong>vacías</strong> — basta con <strong>darles valor en el entorno</strong>. No se agrega ni modifica código.</div>
+      <p>Son globales (dependen del dominio del servicio, no del tenant). Cómo darles valor <strong>depende del entorno</strong>:</p>
+
+      <p style="margin-bottom:4px;"><strong>🖥️ En local (Docker)</strong> — se editan directo en el <code>.env</code> (el backend lo lee con <code>env_file=".env"</code> y el contenedor lo monta con <code>env_file</code>):</p>
+      <ol>
+        <li>Agrega en <code>app-saas-service/.env</code>:
+          <ul>
+            <li><code>SLACK_REDIRECT_URI=https://&lt;tunel-ngrok&gt;/api/v1/integrations/slack/callback</code></li>
+            <li><code>SLACK_FRONTEND_REDIRECT_URL=http://localhost:5173/dashboard/settings</code></li>
+          </ul>
+        </li>
+        <li>Reinicia el contenedor (<code>docker compose up -d</code> o restart del <code>api</code>).</li>
+      </ol>
+      <div class="note warn"><span class="lbl">⚠️</span> En local Slack exige <strong>https</strong> → usa un túnel (ngrok); <code>localhost</code> pelado no lo acepta.</div>
+
+      <p style="margin-bottom:4px;"><strong>☁️ En prod / staging (Azure DevOps)</strong> — el <code>.env</code> <strong>lo genera el pipeline</strong> desde los <em>variable groups</em>, y solo escribe las variables listadas explícitamente. Por eso hacen falta 2 cosas:</p>
+      <ol>
+        <li>Crear <code>SLACK_REDIRECT_URI</code> y <code>SLACK_FRONTEND_REDIRECT_URL</code> en el <strong>variable group</strong> (<code>variables-ai-agents-*</code>) con el dominio real (https).</li>
+        <li>Que <code>pipeline/main.yml</code> las escriba al <code>.env</code> — <strong>ya quedaron agregadas</strong> en los stages <em>DeployDev</em> y <em>DeployQA</em>:
+          <ul>
+            <li><code>SLACK_REDIRECT_URI=$(SLACK_REDIRECT_URI)</code></li>
+            <li><code>SLACK_FRONTEND_REDIRECT_URL=$(SLACK_FRONTEND_REDIRECT_URL)</code></li>
+          </ul>
+        </li>
+      </ol>
+      <div class="note warn"><span class="lbl">⚠️</span> Si agregas las líneas al pipeline pero <strong>no</strong> creas las variables en el variable group, Azure deja el literal <code>$(SLACK_REDIRECT_URI)</code> en el <code>.env</code> (valor basura, inofensivo salvo para el OAuth). Crea ambas en el mismo cambio y reinicia/redeploy.</div>
+      <div class="note warn"><span class="lbl">⚠️ HTTPS obligatorio:</span> Slack exige que la Redirect URL sea <strong>https</strong>. En producción con dominio real funciona directo; en local haría falta un túnel (ngrok).</div>
+      <div class="note tip"><span class="lbl">💡 Nota:</span> las viejas <code>SLACK_CLIENT_ID/SECRET</code> globales ya <strong>no</strong> se usan en runtime (quedaron solo para el seed de la migración) y se retiran en la limpieza final (Fase 3, paso 10).</div>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Hecho</label></div>
+    </div>
+  </div>
+  </details>
+
+  <!-- FASE 1 -->
+  <details class="phase-d" id="fase1">
+    <summary><span class="pill">Fase 1</span> <span class="ph-title">Configuración por tenant</span> <span class="ophint">Owner</span> <span class="chev">▸</span></summary>
+    <p class="sub">La hace cada <strong>owner</strong> desde la app. Cada tenant usa su propia Slack App.</p>
+
+  <div class="step" data-id="s1-1">
+    <div class="num">1</div>
+    <div class="body">
+      <h3>Obtener la Redirect URL</h3>
+      <p>En la app, ve a <span class="path">Ajustes → Slack</span> → abre <strong>"Agregar credenciales"</strong>. Ahí se muestra la <strong>Redirect URL</strong> de tu entorno → <strong>cópiala</strong> con el botón de copiar.</p>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Redirect URL copiada</label></div>
+    </div>
+  </div>
+
+  <div class="step" data-id="s1-2">
+    <div class="num">2</div>
+    <div class="body">
+      <h3>Crear la Slack App del tenant</h3>
+      <p>En <code>https://api.slack.com/apps</code>:</p>
+      <ol>
+        <li><strong>Create New App → From scratch</strong> → nombre (ej. "PropFlow – MiEmpresa") → elige tu workspace.</li>
+        <li><strong>OAuth &amp; Permissions → Redirect URLs</strong> → pega la Redirect URL del paso 1 → <em>Save</em>.</li>
+        <li><strong>Incoming Webhooks</strong> → actívalo (toggle <em>On</em>).</li>
+        <li><strong>Basic Information → App Credentials</strong> → copia el <strong>Client ID</strong> y el <strong>Client Secret</strong>.</li>
+      </ol>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Slack App creada y credenciales copiadas</label></div>
+    </div>
+  </div>
+
+  <div class="step" data-id="s1-3">
+    <div class="num">3</div>
+    <div class="body">
+      <h3>Guardar las credenciales en PropFlow</h3>
+      <p>En <span class="path">Ajustes → Slack</span>, pega <code>Client ID</code> y <code>Client Secret</code> → <strong>Guardar</strong>.</p>
+      <p>Esto guarda las credenciales cifradas <em>por tenant</em> y deja la integración <strong>encendida</strong> (switch maestro On).</p>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Credenciales guardadas</label></div>
+    </div>
+  </div>
+
+  <div class="step" data-id="s1-4">
+    <div class="num">4</div>
+    <div class="body">
+      <h3>Conectar los canales (por propósito)</h3>
+      <p>En <span class="path">Ajustes → Slack</span>, dentro de la sección <strong>"Canales"</strong>, hay una tarjeta por cada propósito. Cada tarjeta se conecta a <strong>un canal de Slack que tú eliges</strong>.</p>
+
+      <table>
+        <thead><tr><th>Tarjeta (propósito)</th><th>Para qué es</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Notificaciones Generales</strong></td><td>Canal <em>fallback</em>: recibe todo lo que no tenga un canal específico. <strong>Conéctalo como mínimo.</strong></td></tr>
+          <tr><td><strong>Control Manual (HITL)</strong></td><td>Escalaciones y conversaciones que pasan a control manual.</td></tr>
+          <tr><td><strong>Ventana WhatsApp</strong></td><td>Avisos de ventana de 24&nbsp;h por cerrarse.</td></tr>
+          <tr><td><strong>Resumen diario de actividad</strong></td><td>Resumen diario de asesores.</td></tr>
+          <tr><td><strong>Supervisión de Asesores</strong></td><td>Alertas de desempeño de asesores.</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong>Para conectar un canal:</strong></p>
+      <ol>
+        <li>En la tarjeta del propósito que quieras, pulsa <span class="btn-lbl connect">Conectar</span>.</li>
+        <li>Te redirige a <strong>Slack</strong> (OAuth). Autoriza la app y <strong>elige el canal destino</strong> (ej. <code>#ventas</code>, <code>#hitl</code>…).</li>
+        <li>Slack te regresa a Ajustes → Slack con un mensaje de éxito. La tarjeta pasa a <strong>Conectado</strong>, mostrando el nombre del canal y la fecha.</li>
+        <li>Repite para cada propósito que quieras usar (cada uno puede apuntar a un canal distinto).</li>
+      </ol>
+
+      <p>Una vez conectada, cada tarjeta tiene dos acciones:</p>
+      <ul>
+        <li><span class="btn-lbl test">Probar</span> → envía un mensaje de prueba a ese canal.</li>
+        <li><span class="btn-lbl disc">Desconectar</span> → elimina ese webhook (deja de recibir en ese canal).</li>
+      </ul>
+
+      <div class="note tip"><span class="lbl">💡 Claves:</span> un canal ≠ un propósito fijo — en Slack eliges el canal que quieras para cada propósito. Los propósitos <strong>no conectados</strong> hacen <em>fallback</em> al canal <strong>General</strong>. Por eso conectar "General" es el mínimo indispensable.</div>
+
+      <div class="note danger">
+        <span class="lbl">🛠️ Si Slack dice "Algo ha salido mal al autorizar…":</span>
+        es un problema de la <code>redirect_uri</code>. Revisa que:
+        <ol style="margin:6px 0 0;">
+          <li>El backend tenga <code>SLACK_REDIRECT_URI</code> definida (Fase 0) — si está vacía, el error es inmediato.</li>
+          <li>Esa URL esté registrada <strong>exactamente igual</strong> en tu Slack App → <em>OAuth &amp; Permissions → Redirect URLs</em>.</li>
+          <li>Sea <strong>https</strong> (Slack no acepta http). En local necesitas un túnel (ngrok) — ver el recuadro de abajo.</li>
+        </ol>
+      </div>
+
+      <div class="note info">
+        <span class="lbl">🧪 Probando en local:</span> el flujo OAuth exige https + callback alcanzable. Si solo quieres probar el <em>envío</em> de notificaciones, no necesitas "Conectar": se puede sembrar el webhook directo en BD. Para validar el OAuth real en local, levanta <code>ngrok http 8000</code>, pon esa URL https en <code>SLACK_REDIRECT_URI</code> (+ <code>/api/v1/integrations/slack/callback</code>) y regístrala en la Slack App.
+      </div>
+
+      <div class="done-row"><label class="chk"><input type="checkbox"> Canal "General" conectado (mínimo) y probado</label></div>
+    </div>
+  </div>
+
+  <div class="step" data-id="s1-5">
+    <div class="num">5</div>
+    <div class="body">
+      <h3>Verificar el switch maestro</h3>
+      <p>En el mismo panel, confirma que el <strong>switch maestro está On</strong>.</p>
+      <div class="note warn"><span class="lbl">⚠️</span> Apagarlo detiene <strong>todos</strong> los envíos de Slack del tenant al instante (sirve como interruptor de emergencia).</div>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Switch maestro en On</label></div>
+    </div>
+  </div>
+  </details>
+
+  <!-- FASE 2 -->
+  <details class="phase-d" id="fase2">
+    <summary><span class="pill">Fase 2</span> <span class="ph-title">Ruteo y afinamiento</span> <span class="ophint">Owner · opcional</span> <span class="chev">▸</span></summary>
+    <p class="sub">Opcional: la migración ya dejó valores por defecto idénticos al comportamiento anterior. Usa esto solo para ajustar.</p>
+
+  <div class="step" data-id="s2-1">
+    <div class="num">6</div>
+    <div class="body">
+      <h3>Canal y obligatoriedad por tipo de notificación</h3>
+      <p>Ve a <span class="path">Notificaciones → pestaña "Administración"</span> (solo <code>owner</code>/<code>system_admin</code>). Por cada tipo ajusta:</p>
+      <ul>
+        <li><strong>Canal Slack</strong>: el propósito al que va (vacío = canal General).</li>
+        <li><strong>Obligatorio</strong>: fuerza el envío a Slack ignorando la preferencia del usuario.</li>
+      </ul>
+      <div class="note info"><span class="lbl">No es obligatorio tocarlo:</span> el backfill de la migración ya copió los valores que estaban en código. Solo úsalo para cambiar el ruteo.</div>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Ruteo por tipo revisado (o dejado por defecto)</label></div>
+    </div>
+  </div>
+
+  <div class="step" data-id="s2-2">
+    <div class="num">7</div>
+    <div class="body">
+      <h3>Canal Slack por proyecto (opcional)</h3>
+      <p>Sirve para que las <strong>visitas agendadas</strong> de un proyecto lleguen a un canal propio, en vez del canal General del tenant.</p>
+      <p><strong>Cómo asignarlo:</strong></p>
+      <ol>
+        <li>Ve a <span class="path">Conexiones (<code>/dashboard/connections</code>)</span>.</li>
+        <li>Busca la tarjeta <strong>"Canal Slack por proyecto"</strong> y despliégala (es colapsable — clic en el encabezado).</li>
+        <li>Verás la lista de proyectos. En el que quieras, pulsa <span class="btn-lbl connect">Configurar</span> (o <strong>Editar</strong> si ya tenía uno).</li>
+        <li>En el modal, elige del desplegable uno de los <strong>canales ya conectados</strong> del tenant (los del paso 4) → <strong>Guardar</strong>.</li>
+        <li>El proyecto queda marcado con su canal (pill morado <code>#nombre</code>).</li>
+      </ol>
+      <div class="note info">
+        <span class="lbl">🔗 Cómo se relacionan las dos pantallas:</span> el desplegable de este paso muestra <strong>solo los canales que están "Conectado"</strong> en <span class="path">Ajustes → Slack</span> (los activos del tenant). Los que están "Sin conectar" no aparecen. Por eso el orden es: <strong>primero conectas canales en Settings (paso 4), y luego los asignas por proyecto aquí.</strong>
+        <div style="margin-top:10px;">
+          <strong>Ejemplo práctico:</strong>
+          <ul style="margin:5px 0 0;">
+            <li>Si en Settings solo conectaste <strong>General</strong> → en el proyecto solo podrás elegir <strong>General</strong>.</li>
+            <li>Si conectas también <strong>HITL</strong> y <strong>Ventana WhatsApp</strong> → esos <strong>3</strong> aparecerán en el desplegable.</li>
+            <li>Los que dejaste <strong>"Sin conectar"</strong> → no son opción.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note tip"><span class="lbl">💡 Regla de resolución:</span> al agendar una visita → si el proyecto tiene canal propio, va ahí; si no, cae al canal <strong>General</strong>; si tampoco hay General, no se envía.</div>
+      <p>Para quitar el canal de un proyecto: entra a <strong>Editar</strong> y elige <em>"Usar el canal del tenant"</em> (opción vacía) → Guardar.</p>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Canales por proyecto asignados (si aplica)</label></div>
+    </div>
+  </div>
+  </details>
+
+  <!-- FASE 3 -->
+  <details class="phase-d" id="fase3">
+    <summary><span class="pill">Fase 3</span> <span class="ph-title">Despliegue, verificación y corte de n8n</span> <span class="ophint">Operativo</span> <span class="chev">▸</span></summary>
+    <p class="sub">Desplegar, confirmar que todo llega y recién entonces retirar Slack de n8n.</p>
+
+  <div class="step" data-id="s3-0">
+    <div class="num">·</div>
+    <div class="body">
+      <h3>Desplegar la rama</h3>
+      <p>Push de <code>feature/SCRUM-1278</code> en ambos repos → PR → merge → deploy a staging/prod.</p>
+      <p>Correr las migraciones nuevas: copiar <code>alembic/versions/slk0*.py</code> al contenedor y <code>alembic upgrade head</code> (el <code>docker-compose</code> solo monta <code>./app</code>, por eso el <code>docker cp</code>).</p>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Rama desplegada y migraciones aplicadas</label></div>
+    </div>
+  </div>
+
+  <div class="step" data-id="s3-1">
+    <div class="num">8</div>
+    <div class="body">
+      <h3>Probar de punta a punta</h3>
+      <ul>
+        <li>Mueve un lead a <code>visita_agendada</code> (desde <code>nuevo</code>/<code>contactado</code>/<code>calificado</code> → agenda cita o cambia estado) → debe llegar el aviso al canal del proyecto (o al general).</li>
+        <li>Prueba un tipo marcado como <strong>Obligatorio</strong>.</li>
+        <li>Apaga el <strong>switch maestro</strong> y confirma que <strong>no llega nada</strong>; vuélvelo a encender.</li>
+      </ul>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Pruebas de envío verificadas</label></div>
+    </div>
+  </div>
+
+  <div class="step" data-id="s3-2">
+    <div class="num">9</div>
+    <div class="body">
+      <h3>Retirar Slack de n8n (operativo)</h3>
+      <p>En n8n, <strong>retira solo la rama/nodo de Slack para <code>visita_agendada</code></strong>.</p>
+      <div class="note danger"><span class="lbl">🚫 No apagues</span> el webhook <code>N8N_LEAD_STATUS_WEBHOOK_URL</code> completo — lo comparten Pipedrive/Zapier/otras automatizaciones. Solo se retira la rama de Slack de visitas.</div>
+      <div class="note warn"><span class="lbl">⚠️ Orden:</span> hazlo tras verificar en un tenant piloto. Mientras ambos (servicio + n8n) están activos hay una ventana de <strong>doble envío</strong> controlada; el corte de n8n la cierra.</div>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Rama de Slack de visitas retirada de n8n</label></div>
+    </div>
+  </div>
+
+  <div class="step" data-id="s3-3">
+    <div class="num">10</div>
+    <div class="body">
+      <h3>Limpieza final (DevOps)</h3>
+      <p>Retirar las variables <code>SLACK_CLIENT_ID</code> / <code>SLACK_CLIENT_SECRET</code> globales del pipeline / variable group — ya no se usan en runtime.</p>
+      <div class="done-row"><label class="chk"><input type="checkbox"> Variables globales retiradas</label></div>
+    </div>
+  </div>
+  </details>
+
+  <div class="divider"></div>
+
+  <!-- Migrados -->
+  <details class="phase-d" id="migrados">
+    <summary><span class="pill">Extra</span> <span class="ph-title">Tenants que YA tenían Slack (migrados)</span> <span class="chev">▸</span></summary>
+  <div class="note tip" style="font-size:.95rem; margin-top:14px;">
+    <span class="lbl">No parten de cero.</span> La migración les dejó el switch <strong>On</strong> y sus canales intactos. <strong>Solo deben registrar <code>Client ID</code>/<code>Client Secret</code></strong> (Fase 1, paso 3) para poder reconectar o agregar canales a futuro; los canales ya conectados siguen recibiendo sin tocar nada.
+  </div>
+  </details>
+
+  <footer>
+    PropFlow · Integración de Slack administrable por tenant (SCRUM-1278) · guía de configuración post-migración.
+  </footer>
+</div>
+
+<script>
+  // Persistencia local del checklist (por navegador)
+  const KEY = 'propflow-slack-guide-checks';
+  function stepId(cb){ return cb.closest('.step').getAttribute('data-id'); }
+  function load(){
+    let saved = {};
+    try{ saved = JSON.parse(localStorage.getItem(KEY) || '{}'); }catch(e){}
+    document.querySelectorAll('.step').forEach(step=>{
+      const cb = step.querySelector('input[type=checkbox]');
+      if(!cb) return;
+      const id = step.getAttribute('data-id');
+      cb.checked = !!saved[id];
+      step.classList.toggle('checked', cb.checked);
+    });
+    updateProgress();
+  }
+  function save(){
+    const saved = {};
+    document.querySelectorAll('.step').forEach(step=>{
+      const cb = step.querySelector('input[type=checkbox]');
+      if(cb) saved[step.getAttribute('data-id')] = cb.checked;
+    });
+    localStorage.setItem(KEY, JSON.stringify(saved));
+  }
+  function updateProgress(){
+    const all = [...document.querySelectorAll('.step input[type=checkbox]')];
+    const done = all.filter(c=>c.checked).length;
+    const pct = all.length ? Math.round(done/all.length*100) : 0;
+    document.getElementById('bar').style.width = pct + '%';
+  }
+  function resetChecks(){
+    localStorage.removeItem(KEY);
+    document.querySelectorAll('.step input[type=checkbox]').forEach(cb=>{cb.checked=false; cb.closest('.step').classList.remove('checked');});
+    updateProgress();
+  }
+  document.addEventListener('change', e=>{
+    if(e.target.matches('.step input[type=checkbox]')){
+      e.target.closest('.step').classList.toggle('checked', e.target.checked);
+      save(); updateProgress();
+    }
+  });
+  // Abrir la fase colapsada al navegar desde el índice
+  function openTarget(){
+    const id = location.hash.slice(1);
+    if(!id) return;
+    const el = document.getElementById(id);
+    if(el && el.tagName === 'DETAILS'){ el.open = true; }
+  }
+  document.querySelectorAll('nav.toc a').forEach(a=>a.addEventListener('click', ()=>{
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if(el && el.tagName === 'DETAILS'){ el.open = true; }
+  }));
+  window.addEventListener('hashchange', openTarget);
+  openTarget();
+  load();
+</script>
+</body>
+</html>
